@@ -948,8 +948,35 @@ def run_training_step_with_backprop(src_batch, tgt_batch, parameter_list, model_
     # 7. Safely detach and return the scalar loss for logging
     return float(loss.item())
 
-# Step 73 - run_training_loop_for_steps (not yet solved)
-# TODO: implement
+# Step 73 - run_training_loop_for_steps
+def run_training_loop_for_steps(batches, parameter_list, model_params, optimizer_state, num_steps, config):
+    """Run num_steps training iterations, cycling through batches, and return per-step losses."""
+    # TODO: iterate for num_steps steps, calling run_training_step_with_backprop each time
+    losses = []
+    num_batches = len(batches)
+    
+    for i in range(num_steps):
+        # 1. Cycle infinitely through the provided batches
+        src_batch, tgt_batch = batches[i % num_batches]
+        
+        # 2. Step numbers must start at 1 for the Noam learning rate schedule
+        step_number = i + 1
+        
+        # 3. Run the complete forward, backward, and optimization pass
+        step_loss = run_training_step_with_backprop(
+            src_batch, 
+            tgt_batch, 
+            parameter_list, 
+            model_params, 
+            optimizer_state, 
+            step_number, 
+            config
+        )
+        
+        # 4. Store the scalar loss float for logging and graphing
+        losses.append(step_loss)
+        
+    return losses
 
 # Step 74 - pick_next_token_by_argmax (not yet solved)
 # TODO: implement
