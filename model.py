@@ -1004,8 +1004,26 @@ def compute_candidate_scores(beam_scores, next_token_log_probs):
     # The GNMT length penalty formula: ((5 + length) / 6) ^ alpha
     return beam_scores.unsqueeze(1) + next_token_log_probs
 
-# Step 77 - select_top_k_candidates (not yet solved)
-# TODO: implement
+# Step 77 - select_top_k_candidates
+import torch
+
+def select_top_k_candidates(candidate_scores, k):
+    # TODO: pick the top k (beam_index, token_id, score) triples from candidate_scores
+    vocab_size = candidate_scores.shape[1]
+    
+    # Flatten to 1D to find the global top-k scores and indices
+    flat_scores = candidate_scores.view(-1)
+    topk_scores, topk_flat_indices = torch.topk(flat_scores, k)
+    
+    # Recover the row (beam) and column (token) indices
+    beam_indices = topk_flat_indices // vocab_size
+    token_ids = topk_flat_indices % vocab_size
+    
+    return {
+        'beam_indices': beam_indices,
+        'token_ids': token_ids,
+        'scores': topk_scores
+    }
 
 # Step 78 - append_tokens_to_beam_sequences (not yet solved)
 # TODO: implement
