@@ -1050,6 +1050,27 @@ def mark_finished_beams(token_ids, finished_flags, end_token_id):
     # A beam is finished if it was ALREADY finished OR it JUST finished
     return finished_flags | just_finished
 
-# Step 80 - select_best_finished_beam (not yet solved)
-# TODO: implement
+# Step 80 - select_best_finished_beam
+def select_best_finished_beam(finished_sequences, finished_scores, alpha):
+    # TODO: return the finished beam with the highest length-penalized score
+    best_sequence = None
+    best_normalized_score = float('-inf')
+    
+    for seq, raw_score in zip(finished_sequences, finished_scores):
+        # Determine the length of the current sequence hypothesis
+        seq_length = seq.size(0)
+        
+        # Calculate the length penalty and normalize the score
+        penalty = compute_length_penalty(seq_length, alpha)
+        normalized_score = raw_score / penalty
+        
+        # Track the sequence with the highest normalized score
+        if normalized_score > best_normalized_score:
+            best_normalized_score = normalized_score
+            best_sequence = seq
+            
+    return {
+        'sequence': best_sequence,
+        'score': best_normalized_score
+    }
 
