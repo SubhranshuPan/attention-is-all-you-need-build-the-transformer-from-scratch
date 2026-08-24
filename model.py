@@ -883,8 +883,34 @@ def zero_all_parameter_gradients(parameter_list):
     for p in parameter_list:
         p.grad = None
 
-# Step 71 - compute_batch_training_loss (not yet solved)
-# TODO: implement
+# Step 71 - compute_batch_training_loss
+def compute_batch_training_loss(src_batch, tgt_batch, model_params, config):
+    # TODO: shift targets right, run the forward pass, build smoothed targets, and average the KL loss over non-pad tokens.
+    pad_id = config['pad_id']
+    start_id = config['start_id']
+    vocab_size = config['vocab_size']
+    smoothing = config['smoothing']
+    num_heads = config['num_heads']
+
+    if 'token_embedding' not in model_params and 'src_embedding' in model_params:
+        model_params['token_embedding'] = model_params['src_embedding']
+
+    decoder_input = shift_targets_right_with_start_token(tgt_batch, start_id)
+
+    log_probs = run_transformer_forward(
+        src_batch, decoder_input, model_params, num_heads, pad_id
+    )
+
+    confidence = 1.0 - smoothing
+    smoothed_dist = build_uniform_smoothing_distribution(log_probs.shape, vocab_size, smoothing)
+    smoothed_dist = set_confidence_on_gold_tokens(smoothed_dist, tgt_batch, confidence)
+    smoothed_dist = zero_pad_column_and_pad_token_rows(smoothed_dist, tgt_batch, pad_id)
+
+    total_loss = compute_label_smoothed_kl_loss(log_probs, smoothed_dist)
+
+    avg_loss = average_loss_over_non_pad_tokens(total_loss, tgt_batch, pad_id)
+
+    return avg_loss
 
 # Step 72 - run_training_step_with_backprop (not yet solved)
 # TODO: implement
