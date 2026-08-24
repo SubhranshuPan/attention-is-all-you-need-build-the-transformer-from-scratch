@@ -912,8 +912,41 @@ def compute_batch_training_loss(src_batch, tgt_batch, model_params, config):
 
     return avg_loss
 
-# Step 72 - run_training_step_with_backprop (not yet solved)
-# TODO: implement
+# Step 72 - run_training_step_with_backprop
+import torch
+
+def run_training_step_with_backprop(src_batch, tgt_batch, parameter_list, model_params, optimizer_state, step_number, config):
+    """Run one training iteration: zero grads, forward, backward, Noam LR, Adam step.
+
+    Returns the scalar loss value for the step as a Python float.
+    """
+    # TODO: zero grads, compute loss, backward, look up Noam LR, apply Adam step
+    # 1. Zero the accumulated gradients from the previous step
+    zero_all_parameter_gradients(parameter_list)
+
+    # 2. Run the forward pass and compute the label-smoothed loss
+    loss = compute_batch_training_loss(src_batch, tgt_batch, model_params, config)
+
+    # 3. Backpropagate to compute gradients for all parameters
+    loss.backward()
+
+    # 4. Calculate the dynamic learning rate for the current step
+    d_model = config['d_model']
+    warmup_steps = config['warmup_steps']
+    learning_rate = compute_noam_learning_rate(step_number, d_model, warmup_steps)
+
+    # 5. Extract Adam hyperparameters with safe fallbacks
+    beta1 = config.get('beta1', 0.9)
+    beta2 = config.get('beta2', 0.98)
+    epsilon = config.get('epsilon', 1e-9)
+
+    # 6. Apply the parameter updates using our custom Adam optimizer
+    apply_adam_step_to_all_parameters(
+        parameter_list, optimizer_state, learning_rate, beta1, beta2, epsilon
+    )
+
+    # 7. Safely detach and return the scalar loss for logging
+    return float(loss.item())
 
 # Step 73 - run_training_loop_for_steps (not yet solved)
 # TODO: implement
