@@ -1002,7 +1002,7 @@ import torch
 def compute_candidate_scores(beam_scores, next_token_log_probs):
     # TODO: add each beam's running log-prob to its row of next-token log probs.
     # The GNMT length penalty formula: ((5 + length) / 6) ^ alpha
-    return ((5.0 + sequence_length) / 6.0) ** alpha
+    return beam_scores.unsqueeze(1) + next_token_log_probs
 
 # Step 77 - select_top_k_candidates (not yet solved)
 # TODO: implement
